@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test-api": "newman run collections/API_AUTOMATION.postman_collection.json -e environments/goRestStaging.postman_environment.json -r htmlextra --reporter-htmlextra-export reports/report.html"
   },
   "repository": {
     "type": "git",
@@ -16,5 +17,9 @@
   "bugs": {
     "url": "https://github.com/pauljsd/api-automation/issues"
   },
-  "homepage": "https://github.com/pauljsd/api-automation#readme"
+  "homepage": "https://github.com/pauljsd/api-automation#readme",
+  "devDependencies": {
+    "newman": "^6.2.1",
+    "newman-reporter-htmlextra": "^1.23.1"
+  }
 }
