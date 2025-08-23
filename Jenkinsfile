@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+
+    triggers {
+        cron('H 7,19 * * *')   // Runs twice daily: 7AM & 7PM
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'master', url: 'https://github.com/your-username/api-automation-tests.git'
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+        stage('Run API Tests') {
+            steps {
+                sh 'npm run test-api'
+            }
+        }
+        stage('Publish Report') {
+            steps {
+                publishHTML(target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'reports',
+                    reportFiles: 'report.html',
+                    reportName: 'API Test Report'
+                ])
+            }
+        }
+    }
+}
