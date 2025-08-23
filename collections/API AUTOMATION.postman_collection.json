@@ -1,0 +1,755 @@
+{
+	"info": {
+		"_postman_id": "b8ed7d08-d53f-485c-a960-3b5263387a81",
+		"name": "API AUTOMATION",
+		"description": "This project demonstrates how to design and execute automated API tests using Postman and Newman. We are testing the GoRest Users API with the base URL: \"[https://gorest.co.in/public/v2/users\"](https://gorest.co.in/public/v2/users)\n\nThis endpoint allows CRUD operations on user data and serves as a good candidate for showcasing end-to-end API testing.\n\n(1) Tools & Setup\n\n- Postman → for designing requests and writing test scripts.\n    \n- Newman → for running collections in CI/CD pipelines.\n    \n- GitHub → for version control and collaboration.\n    \n- Jenkins → for automated runs & reporting.\n    \n\n(2)Test Scenarios  \nWe created tests around the key CRUD endpoints:\n\n(i) Create User (POST /users)\n\n- Verify status code 201.\n    \n- Validate response schema (fields: id, name, email, gender, status).\n    \n- Save id for subsequent tests.\n    \n\n(ii) Get Users (GET /users)\n\n- Verify status code 200.\n    \n- Assert response contains an array.\n    \n- Validate specific fields (id, email) are present.\n    \n\n(iii) Get User by ID (GET /users/{{userID}})\n\n- Verify status code 200.\n    \n- Assert id matches the created user.\n    \n\n(iv) Update User (PUT /users/{{userID}})\n\n- Verify status code 200.\n    \n- Confirm updated fields (name, status) are reflected.\n    \n\n(v) Delete User (DELETE /users/{{userID}})\n\n- Verify status code 204.\n    \n- Assert a subsequent GET returns 404.\n    \n\n(3) Test Automation with Newman\n\n\\-> newman run gorest_collection.json -e gorest_environment.json  \n\\--reporters cli,html --reporter-html-export newman-report.html\n\n(4) CI/CT Integration\n\n- Added collection & environment files into a GitHub repo.\n    \n- Created a Jenkins pipeline to:\n    \n- Run the Newman command.\n    \n- Archive & email reports.\n    \n- Schedule runs (hourly or 2x daily).\n    \n\n(6) Results\n\n- Automated API tests cover Create → Read → Update → Delete flows.\n    \n- Reports show pass/fail status of all requests.\n    \n- Scheduling ensures continuous validation of API availability and functionality.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30587161"
+	},
+	"item": [
+		{
+			"name": "LIST ALL USER",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// RESPONSE CODE TESTING\r",
+							"pm.test(\"Verify if response code is 201 Created\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.have.status(\"OK\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE BODY TESTING\r",
+							"pm.test(\"Verify if the response body is received from server\", function () {\r",
+							"    pm.response.to.have.body();\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Verify if the response body has the fields [id, name, email, gender, status]\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"id\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"name\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"email\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"gender\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"status\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE HEADERS TESTING\r",
+							"pm.test(\"Verify if Content-Type=application/json\", function () {\r",
+							"    pm.response.to.have.header(\"Content-Type\", \"application/json; charset=utf-8\");\r",
+							"});\r",
+							"\r",
+							"\r",
+							"\r",
+							"// RESPONSE TIME TESTING\r",
+							"pm.test(\"Verify if the response time from server is < 2 seconds\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"user-agent": true
+				},
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth}}"
+					},
+					{
+						"key": "User-Agent",
+						"value": "{{$randomUserAgent}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{envUrl}}",
+					"host": [
+						"{{envUrl}}"
+					]
+				},
+				"description": "This API is used to create a new user in the database and this API uses POST http method.\n\n**Exp Result:**\n\n(i) Verify if the server returns 201 Created as the response code\n\n(ii) Verify if the response body is received from server\n\n(ii) Verify if the response body received from server is in JSON format\n\n(iv) Verify if the response time from server is < 2 seconds\n\n(v) Verify if the response body has these fields \\[id, name, email, gender, status\\]\n\n(vi) Verify if status = {active, inactive}\n\n(vii) Verify if gender = {male, female}"
+			},
+			"response": []
+		},
+		{
+			"name": "CREATE A USER",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// RESPONSE CODE TESTING\r",
+							"pm.test(\"Verify if response code is 201 Created\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"    pm.response.to.have.status(\"Created\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE BODY TESTING\r",
+							"pm.test(\"Verify if the response body is received from server\", function () {\r",
+							"    pm.response.to.have.body();\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Verify if the response body has the fields [id, name, email, gender, status]\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"id\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"name\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"email\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"gender\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"status\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE HEADERS TESTING\r",
+							"pm.test(\"Verify if Content-Type=application/json\", function () {\r",
+							"    pm.response.to.have.header(\"Content-Type\", \"application/json; charset=utf-8\");\r",
+							"});\r",
+							"\r",
+							"\r",
+							"\r",
+							"// RESPONSE TIME TESTING\r",
+							"pm.test(\"Verify if the response time from server is < 2 seconds\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+							"});\r",
+							"\r",
+							"console.log(\"GOT HERE 1\");\r",
+							"\r",
+							"// ENUM-VALUE CHECK\r",
+							"pm.test(\"Verify if gender = {male, female}\", function () {\r",
+							"    pm.expect(pm.response.json().gender).to.be.oneOf([\"male\", \"female\"]);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Verify if status = {active, inactive}\", function () {\r",
+							"    pm.expect(pm.response.json().status).to.be.oneOf([\"active\", \"inactive\"]);\r",
+							"});\r",
+							"\r",
+							"console.log(\"GOT HERE 2\");\r",
+							"\r",
+							"// API CHAINING CODE\r",
+							"var jsonData = pm.response.json();  // getting the full response\r",
+							"var extractedID = jsonData.id;      // storing response json to a local variable\r",
+							"pm.environment.set(\"envID\", extractedID);    // making local variable to environment variable\r",
+							"\r",
+							"var extractedName = jsonData.name;      // saving the name-value to a local variable\r",
+							"pm.environment.set(\"envName\", extractedName);    // making the name variable to a environment variable\r",
+							"\r",
+							"var extractedEmail = jsonData.email;      // saving the email-value to a local variable\r",
+							"pm.environment.set(\"envEmail\", extractedEmail);    // making the email variable to environment variable\r",
+							"\r",
+							"var extractedStatus = jsonData.status;      // saving the status-value to a local variable\r",
+							"pm.environment.set(\"envStatus\", extractedStatus);    // making the status-value to environment variable\r",
+							"\r",
+							"// THIS IS FOR POSTMAN WORKFLOWS\r",
+							"if (pm.response.code==201) {\r",
+							"    pm.execution.setNextRequest(\"VERIFY IF USER IS CREATED\");    // to pass the control to next API\r",
+							"    console.log(\"This API- \"+pm.info.requestName+\" has passed\");\r",
+							"}\r",
+							"else {\r",
+							"    pm.execution.setNextRequest(\"\"); // to stop the test execution\r",
+							"    console.log(\"This API- \"+pm.info.requestName+\" has failed\");\r",
+							"}\r",
+							"\r",
+							"// CONFIRMING ALL RESPONSE ATTRIBUTES IN THE CONSOLE\r",
+							"console.log(\"The Response code received from server is \"+pm.response.code);\r",
+							"console.log(\"The Response message received from server is \"+pm.response.status);\r",
+							"console.log(\"The Response time received from server is \"+pm.response.responseTime+\" ms\");\r",
+							"console.log(\"The full response size received from server is \");\r",
+							"console.log(pm.response.size());\r",
+							"console.log(\"The response body size received from server is \");\r",
+							"console.log(pm.response.size().body);\r",
+							"// console.log(\"The response headers size received from server is \"+pm.response.body.headers);\r",
+							"console.log(\"The Response body (json) received from server is \");\r",
+							"console.log(pm.response.json());\r",
+							"console.log(\"The Response body (text) received from server is \");\r",
+							"console.log(pm.response.text());\r",
+							"console.log(\"The Response headers received from server is \"+pm.response.headers);\r",
+							"\r",
+							"// PRINTING REQUEST ATTRIBUTES\r",
+							"console.log(\"The request URL is \"+pm.request.url);\r",
+							"console.log(\"The request method is \"+pm.request.method);\r",
+							"console.log(\"The request name is \"+pm.info.requestName);\r",
+							"console.log(\"The request headers are \"+pm.request.headers);\r",
+							"console.log(\"The request body/payload is \"+pm.request.body);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"user-agent": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth}}"
+					},
+					{
+						"key": "User-Agent",
+						"value": "{{$randomUserAgent}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"{{$randomFirstName}}\",  //{{$randomFirstName}}\r\n    \"gender\": \"male\",\r\n    \"email\": \"{{$randomEmail}}\",\r\n    \"status\": \"active\"\r\n}"
+				},
+				"url": {
+					"raw": "{{envUrl}}",
+					"host": [
+						"{{envUrl}}"
+					]
+				},
+				"description": "This API is used to create a new user in the database and this API uses POST http method.\n\n**Exp Result:**\n\n(i) Verify if the server returns 201 Created as the response code\n\n(ii) Verify if the response body is received from server\n\n(ii) Verify if the response body received from server is in JSON format\n\n(iv) Verify if the response time from server is < 2 seconds\n\n(v) Verify if the response body has these fields \\[id, name, email, gender, status\\]\n\n(vi) Verify if status = {active, inactive}\n\n(vii) Verify if gender = {male, female}"
+			},
+			"response": []
+		},
+		{
+			"name": "VERIFY IF USER IS CREATED",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// RESPONSE CODE TESTING\r",
+							"pm.test(\"Verify if response code is 200 OK\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.have.status(\"OK\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE BODY TESTING\r",
+							"pm.test(\"Verify if the response body is received from server\", function () {\r",
+							"    pm.response.to.have.body();\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Verify if the response body has the fields [id, name, email, gender, status]\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"id\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"name\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"email\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"gender\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"status\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE HEADERS TESTING\r",
+							"pm.test(\"Verify if Content-Type=application/json\", function () {\r",
+							"    pm.response.to.have.header(\"Content-Type\", \"application/json; charset=utf-8\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE TIME TESTING\r",
+							"pm.test(\"Verify if the response time from server is < 2 seconds\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+							"});\r",
+							"\r",
+							"// JSON VALUE CHECK\r",
+							"pm.test(\"Verify if the new user is created - \"+pm.environment.get(\"envName\"), function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[0].name).to.eql(pm.environment.get(\"envName\"));\r",
+							"    console.log(\"This API- \"+pm.info.requestName+\" has passed\");\r",
+							"});\r",
+							"\r",
+							"// POSTMAN WORKFLOWS\r",
+							"\r",
+							"if (pm.response.code==200) {\r",
+							"    pm.execution.setNextRequest(\"UPDATE THE USER\");    // this will pass the control to next API\r",
+							"}\r",
+							"else {\r",
+							"    pm.execution.setNextRequest(\"\"); // this will help stop the test execution\r",
+							"    console.log(\"This API- \"+pm.info.requestName+\" has failed\");\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"user-agent": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth}}"
+					},
+					{
+						"key": "User-Agent",
+						"value": "{{$randomUserAgent}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{envUrl}}",
+					"host": [
+						"{{envUrl}}"
+					]
+				},
+				"description": "This API is used to retrieve/read/fetch the existing users details from the database and this API uses GET http method\n\n**Exp Result:**\n\n(i) Verify if the server returns 200 OK as the response code\n\n(ii) Verify if the response body is received from server\n\n(ii) Verify if the response body received from server is in JSON format\n\n(iv) Verify if the response time from server is < 2 seconds\n\n(v) Verify if the response body has these fields \\[id, name, email, gender, status\\]\n\n(vi) Verify if status = {active, inactive}\n\n(vii) Verify if gender = {male, female}"
+			},
+			"response": []
+		},
+		{
+			"name": "UPDATE THE USER",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// editor area where we can write JAVA-SCRIPTS\r",
+							"// hierarchy of test execution: API request --> API response --> Java Scripts\r",
+							"\r",
+							"// RESPONSE CODE TESTING\r",
+							"pm.test(\"Verify if response code is 200 OK\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.have.status(\"OK\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE BODY TESTING\r",
+							"pm.test(\"Verify if the response body is received from server\", function () {\r",
+							"    pm.response.to.have.body();\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Verify if the response body has the fields [id, name, email, gender, status]\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"id\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"name\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"email\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"gender\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"status\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE HEADERS TESTING\r",
+							"pm.test(\"Verify if Content-Type=application/json\", function () {\r",
+							"    pm.response.to.have.header(\"Content-Type\", \"application/json; charset=utf-8\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE TIME TESTING\r",
+							"pm.test(\"Verify if the response time from server is < 2 seconds\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+							"});\r",
+							"\r",
+							"// API CHAINING CODE\r",
+							"var jsonData = pm.response.json();  // extracting the full response\r",
+							"var extractedName = jsonData.name;      // extracting the required field value to a local variable\r",
+							"pm.environment.set(\"envName\", extractedName);    // converting local variable to env variable\r",
+							"\r",
+							"// POSTMAN WORKFLOWS\r",
+							"\r",
+							"if (pm.response.code==200) {\r",
+							"    pm.execution.setNextRequest(\"VERIFY IF THE USER IS UPDATED\");    // to pass the control to next API\r",
+							"    console.log(\"This API- \"+pm.info.requestName+\" has passed\");\r",
+							"}\r",
+							"else {\r",
+							"    pm.execution.setNextRequest(\"\"); // to stop the test execution\r",
+							"    console.log(\"This API- \"+pm.info.requestName+\" has failed\");\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"user-agent": true
+				}
+			},
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth}}"
+					},
+					{
+						"key": "User-Agent",
+						"value": "{{$randomUserAgent}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \" {{$randomNamePrefix}}{{globalName}}\",\r\n    \"email\": \"{{envEmail}}\",\r\n    \"status\": \"{{envStatus}}\"\r\n}"
+				},
+				"url": {
+					"raw": "{{envUrl}}/{{envID}}",
+					"host": [
+						"{{envUrl}}"
+					],
+					"path": [
+						"{{envID}}"
+					]
+				},
+				"description": "This API is used to update an existing user details in the database and this API uses PATCH http method.\n\n**Exp Result:**\n\n(i) Verify if the server returns 200 OK as the response code\n\n(ii) Verify if the response body is received from server\n\n(ii) Verify if the response body received from server is in JSON format\n\n(iv) Verify if the response time from server is < 2 seconds\n\n(v) Verify if the response body has these fields \\[id, name, email, gender, status\\]\n\n(vi) Verify if status = {active, inactive}\n\n(vii) Verify if gender = {male, female}"
+			},
+			"response": []
+		},
+		{
+			"name": "VERIFY IF THE USER IS UPDATED",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// editor area where we can write JAVA-SCRIPTS\r",
+							"// hierarchy of test execution: API request --> API response --> Java Scripts\r",
+							"\r",
+							"// RESPONSE CODE TESTING\r",
+							"pm.test(\"Verify if response code is 200 OK\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.have.status(\"OK\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE BODY TESTING\r",
+							"pm.test(\"Verify if the response body is received from server\", function () {\r",
+							"    pm.response.to.have.body();\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Verify if the response body has the fields [id, name, email, gender, status]\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"id\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"name\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"email\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"gender\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"status\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE HEADERS TESTING\r",
+							"pm.test(\"Verify if Content-Type=application/json\", function () {\r",
+							"    pm.response.to.have.header(\"Content-Type\", \"application/json; charset=utf-8\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE TIME TESTING\r",
+							"pm.test(\"Verify if the response time from server is < 2 seconds\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+							"});\r",
+							"\r",
+							"// JSON VALUE CHECK\r",
+							"pm.test(\"Verify if the new user is updated - \"+pm.environment.get(\"envName\"), function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[0].name).to.eql(pm.environment.get(\"envName\"));\r",
+							"});\r",
+							"\r",
+							"// POSTMAN WORKFLOWS\r",
+							"\r",
+							"if (pm.response.code==200) {\r",
+							"    pm.execution.setNextRequest(\"DELETE THE USER\");    // to pass the control to next API\r",
+							"    console.log(\"This API- \"+pm.info.requestName+\" has passed\");\r",
+							"}\r",
+							"else {\r",
+							"    pm.execution.setNextRequest(\"\"); // to stop the test execution\r",
+							"    console.log(\"This API- \"+pm.info.requestName+\" has failed\");\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"user-agent": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth}}"
+					},
+					{
+						"key": "User-Agent",
+						"value": "{{$randomUserAgent}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{envUrl}}",
+					"host": [
+						"{{envUrl}}"
+					]
+				},
+				"description": "This API is used to retrieve/read/fetch the existing users details from the database and this API uses GET http method\n\n**Exp Result:**\n\n(i) Verify if the server returns 200 OK as the response code\n\n(ii) Verify if the response body is received from server\n\n(ii) Verify if the response body received from server is in JSON format\n\n(iv) Verify if the response time from server is < 2 seconds\n\n(v) Verify if the response body has these fields \\[id, name, email, gender, status\\]\n\n(vi) Verify if status = {active, inactive}\n\n(vii) Verify if gender = {male, female}"
+			},
+			"response": []
+		},
+		{
+			"name": "DELETE THE USER",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// editor area where we can write JAVA-SCRIPTS\r",
+							"// hierarchy of test execution: API request --> API response --> Java Scripts\r",
+							"\r",
+							"// RESPONSE CODE TESTING\r",
+							"pm.test(\"Verify if response code is 204 No Content\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"    pm.response.to.have.status(\"No Content\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE BODY TESTING\r",
+							"pm.test(\"Verify if the response body is empty\", function () {\r",
+							"    pm.response.to.not.have.body();\r",
+							"});\r",
+							"\r",
+							"// RESPONSE TIME TESTING\r",
+							"pm.test(\"Verify if the response time from server is < 2 seconds\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+							"});\r",
+							"\r",
+							"// POSTMAN WORKFLOWS\r",
+							"\r",
+							"if (pm.response.code==204) {\r",
+							"    pm.execution.setNextRequest(\"VERIFY IF THE USER IS DELETED\");    // to pass the control to next API\r",
+							"    console.log(\"This API- \"+pm.info.requestName+\" has passed\");\r",
+							"}\r",
+							"else {\r",
+							"    pm.execution.setNextRequest(\"\"); // to stop the test execution\r",
+							"    console.log(\"This API- \"+pm.info.requestName+\" has failed\");\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"user-agent": true
+				}
+			},
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer ba27e6bcbebdb6672d44749409fa9d17d58e44177848fa7079a86ee037657094"
+					},
+					{
+						"key": "User-Agent",
+						"value": "{{$randomUserAgent}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{envUrl}}/{{envID}}",
+					"host": [
+						"{{envUrl}}"
+					],
+					"path": [
+						"{{envID}}"
+					]
+				},
+				"description": "This API is used to delete an existing user in the database and this API uses DELETE http method.\n\n**Exp Result:**\n\n(i) Verify if the server returns 204 No Content as the response code\n\n(ii) Verify if the response body is empty\n\n(ii) Verify if the response time from server is < 2 seconds"
+			},
+			"response": []
+		},
+		{
+			"name": "VERIFY IF THE USER IS DELETED",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"\r",
+							"// RESPONSE CODE TESTING\r",
+							"pm.test(\"Verify if response code is 200 OK\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.response.to.have.status(\"OK\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE BODY TESTING\r",
+							"pm.test(\"Verify if the response body is received from server\", function () {\r",
+							"    pm.response.to.have.body();\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Verify if the response body has the fields [id, name, email, gender, status]\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"id\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"name\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"email\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"gender\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"status\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE HEADERS TESTING\r",
+							"pm.test(\"Verify if Content-Type=application/json\", function () {\r",
+							"    pm.response.to.have.header(\"Content-Type\", \"application/json; charset=utf-8\");\r",
+							"});\r",
+							"\r",
+							"// RESPONSE TIME TESTING\r",
+							"pm.test(\"Verify if the response time from server is < 2 seconds\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(2000);\r",
+							"});\r",
+							"\r",
+							"// JSON VALUE CHECK\r",
+							"pm.test(\"Verify if the new user is deleted - \"+pm.environment.get(\"envName\"), function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[0].name).to.not.eql(pm.environment.get(\"envName\"));\r",
+							"});\r",
+							"\r",
+							"// POSTMAN WORKFLOWS\r",
+							"\r",
+							"if (pm.response.code==200) {\r",
+							"    pm.execution.setNextRequest(\"\"); // to stop the test execution;\r",
+							"    console.log(\"This API- \"+pm.info.requestName+\" has passed\");\r",
+							"}\r",
+							"else {\r",
+							"    pm.execution.setNextRequest(\"\"); // to stop the test execution\r",
+							"    console.log(\"This API- \"+pm.info.requestName+\" has failed\");\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"user-agent": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer ba27e6bcbebdb6672d44749409fa9d17d58e44177848fa7079a86ee037657094"
+					},
+					{
+						"key": "User-Agent",
+						"value": "{{$randomUserAgent}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{envUrl}}",
+					"host": [
+						"{{envUrl}}"
+					]
+				},
+				"description": "This API is used to retrieve/read/fetch the existing users details from the database and this API uses GET http method\n\n**Exp Result:**\n\n(i) Verify if the server returns 200 OK as the response code\n\n(ii) Verify if the response body is received from server\n\n(ii) Verify if the response body received from server is in JSON format\n\n(iv) Verify if the response time from server is < 2 seconds\n\n(v) Verify if the response body has these fields \\[id, name, email, gender, status\\]\n\n(vi) Verify if status = {active, inactive}\n\n(vii) Verify if gender = {male, female}"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
