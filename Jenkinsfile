@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'master', url: 'https://github.com/your-username/api-automation-tests.git'
+                git branch: 'main', url: 'https://github.com/pauljsd/api-automation.git'
             }
         }
         stage('Install Dependencies') {
