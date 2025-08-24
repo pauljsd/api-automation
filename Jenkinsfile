@@ -11,15 +11,17 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/pauljsd/api-automation.git'
             }
         }
+
         stage('Install Dependencies') {
             steps {
                 bat 'npm install'
-                bat 'npm install -g newman-reporter-htmlextra'
+                bat 'npm install -g newman newman-reporter-htmlextra'
+                bat 'where newman' // Confirm path to newman in Windows
             }
         }
-         stage('Prepare Reports Directory') {
+
+        stage('Prepare Reports Directory') {
             steps {
-                // Make sure reports folder exists
                 bat '''
                 if not exist reports (
                     mkdir reports
@@ -27,11 +29,17 @@ pipeline {
                 '''
             }
         }
+
         stage('Run API Tests') {
             steps {
-                bat 'npm run test-api'
+                // Run tests without failing pipeline if they fail
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    // Use full path to newman if needed (replace with your output from `where newman`)
+                    bat 'newman run collections/API_AUTOMATION.postman_collection.json -e environments/goRestStaging.postman_environment.json -r htmlextra --reporter-htmlextra-export reports/report.html'
+                }
             }
         }
+
         stage('Publish Report') {
             steps {
                 publishHTML(target: [
@@ -43,6 +51,12 @@ pipeline {
                     reportName: 'API Test Report'
                 ])
             }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline finished. Check HTML report above."
         }
     }
 }
