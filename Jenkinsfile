@@ -14,6 +14,13 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
+                sh 'npm install -g newman-reporter-htmlextra'
+            }
+        }
+         stage('Prepare Reports Directory') {
+            steps {
+                // Make sure reports folder exists
+                sh 'mkdir -p reports'
             }
         }
         stage('Run API Tests') {
