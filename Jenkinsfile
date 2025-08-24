@@ -20,7 +20,11 @@ pipeline {
          stage('Prepare Reports Directory') {
             steps {
                 // Make sure reports folder exists
-                bat 'mkdir -p reports'
+                bat '''
+                if not exist reports (
+                    mkdir reports
+                )
+                '''
             }
         }
         stage('Run API Tests') {
